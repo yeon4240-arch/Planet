@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Travel Planner ✈️</title>
+    <style>
+        :root {
+            --primary-color: #2a6fdb;
+            --secondary-color: #f1f5f9;
+            --accent-color: #ff4d4d;
+            --text-color: #1e293b;
+            --bg-color: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+            padding-bottom: 60px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        header {
+            text-align: center;
+            padding: 24px 0 16px 0;
+        }
+
+        header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        /* 세련된 섹션 카드 스타일 */
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            border: 1px solid rgba(241, 245, 249, 0.8);
+        }
+
+        .section h2 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+        }
+
+        /* 1. 예산 계산기 스타일 */
+        .budget-setting {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .budget-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .budget-box {
+            background: var(--secondary-color);
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .budget-box span {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .budget-box p {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+        
+        .remains { color: var(--primary-color); }
+        
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .input-timeline-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: var(--secondary-color);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .input-timeline-row {
+            display: flex;
+            gap: 8px;
+        }
+        
+        input, select, button {
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        input:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(42, 111, 219, 0.1);
+        }
+        
+        input[type="text"], input[type="number"], input[type="time"] { flex: 1; }
+        
+        select {
+            background-color: white;
+            padding-right: 24px;
+        }
+        
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        
+        button.btn-danger {
+            background: #ef4444;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .expense-list {
+            list-style: none;
+            max-height: 160px;
+            overflow-y: auto;
+            font-size: 14px;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 8px;
+        }
+        
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 4px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .expense-item span:first-child { color: #334155; }
+        .expense-item span:last-child { font-weight: 600; color: #0f172a; }
+
+        /* 2. 짐싸기 체크리스트 스타일 */
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 4px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .check-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid #cbd5e1;
+            cursor: pointer;
+        }
+        
+        .check-item span {
+            font-size: 14px;
+            color: #334155;
+            transition: all 0.2s;
+        }
+        
+        .check-item.done span {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+
+        /* 3. 타임라인 플래너 스타일 */
+        .timeline {
+            position: relative;
+            padding-left: 24px;
+            margin-top: 8px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background: #e2e8f0;
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 24px;
+        }
+        
+        .timeline-item:last-child {
+            padding-bottom: 4px;
+        }
+        
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -23px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px rgba(42, 111, 219, 0.2);
+        }
+        
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+        
+        .location {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+        
+        .memo {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .delete-timeline-btn {
+            background: none;
+            color: #94a3b8;
+            border: none;
+            padding: 2px 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .delete-timeline-btn:hover {
+            color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My Travel Planner ✈️</h1>
+        <p>모바일 전용 올인원 플래너</p>
+    </header>
+
+    <!-- 1. 여행 예산 계산기 -->
+    <div class="section">
+        <h2>💰 예산 계산기 (환율 반영)</h2>
+        <div class="budget-setting">
+            <select id="currency" onchange="updateBudget()">
+                <option value="1">원화 (₩)</option>
+                <option value="9.0">일본 엔 (100엔 기준 ¥)</option>
+                <option value="1370">미국 달러 ($)</option>
+            </select>
+            <input type="number" id="total-budget" value="500000" oninput="updateBudget()" placeholder="총 예산 입력">
+        </div>
+        
+        <div class="budget-summary">
+            <div class="budget-box">
+                <span>사용한 금액</span>
+                <p id="used-amount" style="color: var(--accent-color);">0</p>
+            </div>
+            <div class="budget-box">
+                <span>남은 예산</span>
+                <p id="remaining-amount" class="remains">0</p>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="expense-title" placeholder="내역 (예: 점심값)">
+            <input type="number" id="expense-cost" placeholder="금액">
+            <button onclick="addExpense()">추가</button>
+        </div>
+
+        <ul class="expense-list" id="expense-list">
+            <!-- 지출 내역 추가 공간 -->
+        </ul>
+    </div>
+
+    <!-- 2. 짐싸기 체크리스트 -->
+    <div class="section">
+        <h2>🧳 짐싸기 체크리스트</h2>
+        <div class="input-group">
+            <input type="text" id="todo-input" placeholder="새 준비물 추가...">
+            <button onclick="addTodo()">등록</button>
+        </div>
+        <div id="todo-list">
+            <label class="check-item"><input type="checkbox" onclick="toggleCheck(this)"> <span>여권 및 항공권 바우처</span></label>
+            <label class="check-item"><input type="checkbox" onclick="toggleCheck(this)"> <span>보조 배터리 & 멀티 어댑터</span></label>
+            <label class="check-item"><input type="checkbox" onclick="toggleCheck(this)"> <span>비상약 (감기약, 소화제, 대역반창고)</span></label>
+            <label class="check-item"><input type="checkbox" onclick="toggleCheck(this)"> <span>스킨케어 제품 & 썬크림</span></label>
+        </div>
+    </div>
+
+    <!-- 3. 1일 일정 플래너 -->
+    <div class="section">
+        <h2>📍 나만의 1일 일정 (타임라인)</h2>
+        
+        <!-- 일정 추가 입력 폼 -->
+        <div class="input-timeline-group">
+            <div class="input-timeline-row">
+                <input type="time" id="timeline-time" value="12:00">
+                <input type="text" id="timeline-location" placeholder="장소 또는 일정 이름">
+            </div>
+            <div class="input-timeline-row">
+                <input type="text" id="timeline-memo" placeholder="간단한 메모 (선택)">
+                <button onclick="addTimelineItem()">일정 추가</button>
+            </div>
+        </div>
+
+        <div class="timeline" id="timeline">
+            <div class="timeline-item" data-time="09:00">
+                <div class="timeline-header">
+                    <div class="time">09:00</div>
+                    <button class="delete-timeline-btn" onclick="deleteTimelineItem(this)">삭제</button>
+                </div>
+                <div class="location">공항 출발 및 체크인 공략</div>
+                <div class="memo">포켓 와이파이나 eSIM 수령 상태 확인하기!</div>
+            </div>
+            <div class="timeline-item" data-time="13:00">
+                <div class="timeline-header">
+                    <div class="time">13:00</div>
+                    <button class="delete-timeline-btn" onclick="deleteTimelineItem(this)">삭제</button>
+                </div>
+                <div class="location">현지 로컬 맛집 탐방 (점심식사)</div>
+                <div class="memo">인기 매장이니 웨이팅 감안해서 일찍 가기</div>
+            </div>
+            <div class="timeline-item" data-time="16:00">
+                <div class="timeline-header">
+                    <div class="time">16:00</div>
+                    <button class="delete-timeline-btn" onclick="deleteTimelineItem(this)">삭제</button>
+                </div>
+                <div class="location">소품샵 & 덕질 스팟 거리 구경 🛍️</div>
+                <div class="memo">위시리스트에 적어둔 한정판 굿즈와 피규어 체크!</div>
+            </div>
+            <div class="timeline-item" data-time="20:00">
+                <div class="timeline-header">
+                    <div class="time">20:00</div>
+                    <button class="delete-timeline-btn" onclick="deleteTimelineItem(this)">삭제</button>
+                </div>
+                <div class="location">야경 명소 투어 및 편의점 털기</div>
+                <div class="memo">숙소 들어가는 길에 내일 마실 음료와 푸딩 사기</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 예산 계산기 로직 ---
+        let totalExpense = 0;
+
+        function updateBudget() {
+            const rate = parseFloat(document.getElementById('currency').value);
+            const totalBudget = parseFloat(document.getElementById('total-budget').value) || 0;
+            
+            let usedCalculated = totalExpense;
+            if (rate === 9.0) {
+                usedCalculated = (totalExpense / 100) * rate;
+            } else {
+                usedCalculated = totalExpense * rate;
+            }
+            
+            const remaining = totalBudget - usedCalculated;
+            
+            document.getElementById('used-amount').innerText = usedCalculated.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' 원';
+            document.getElementById('remaining-amount').innerText = remaining.toLocaleString(undefined, {maximumFractionDigits: 0}) + ' 원';
+        }
+
+        function addExpense() {
+            const titleInput = document.getElementById('expense-title');
+            const costInput = document.getElementById('expense-cost');
+            const currencySelect = document.getElementById('currency');
+            const selectedCurrencyText = currencySelect.options[currencySelect.selectedIndex].text.split(' ')[0];
+            
+            if(!titleInput.value || !costInput.value) return;
+
+            const cost = parseFloat(costInput.value);
+            totalExpense += cost;
+
+            const li = document.createElement('li');
+            li.className = 'expense-item';
+            li.innerHTML = `<span>${titleInput.value}</span> <span>${cost.toLocaleString()} ${selectedCurrencyText.includes('원화') ? '원' : selectedCurrencyText.includes('엔') ? '엔' : '$'}</span>`;
+            document.getElementById('expense-list').appendChild(li);
+
+            titleInput.value = '';
+            costInput.value = '';
+            updateBudget();
+        }
+
+        // --- 2. 체크리스트 로직 ---
+        function toggleCheck(checkbox) {
+            if(checkbox.checked) {
+                checkbox.parentElement.classList.add('done');
+            } else {
+                checkbox.parentElement.classList.remove('done');
+            }
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            if(!input.value) return;
+
+            const label = document.createElement('label');
+            label.className = 'check-item';
+            label.innerHTML = `<input type="checkbox" onclick="toggleCheck(this)"> <span>${input.value}</span>`;
+            
+            document.getElementById('todo-list').appendChild(label);
+            input.value = '';
+        }
+
+        // --- 3. 타임라인 플래너 로직 (추가/삭제/시간순 정렬 가능) ---
+        function addTimelineItem() {
+            const timeInput = document.getElementById('timeline-time');
+            const locationInput = document.getElementById('timeline-location');
+            const memoInput = document.getElementById('timeline-memo');
+
+            if (!locationInput.value) {
+                alert('장소 또는 일정 이름을 입력해 주세요.');
+                return;
+            }
+
+            const timeline = document.getElementById('timeline');
+            
+            // 새 일정 아이템 엘리먼트 생성
+            const item = document.createElement('div');
+            item.className = 'timeline-item';
+            item.setAttribute('data-time', timeInput.value);
+            
+            item.innerHTML = `
+                <div class="timeline-header">
+                    <div class="time">${timeInput.value}</div>
+                    <button class="delete-timeline-btn" onclick="deleteTimelineItem(this)">삭제</button>
+                </div>
+                <div class="location">${locationInput.value}</div>
+                <div class="memo">${memoInput.value || ''}</div>
+            `;
+
+            timeline.appendChild(item);
+            
+            // 시간 순서대로 정렬하기
+            sortTimeline();
+
+            // 입력 필드 초기화 (시간은 유지, 텍스트만 비움)
+            locationInput.value = '';
+            memoInput.value = '';
+        }
+
+        function deleteTimelineItem(button) {
+            // 버튼의 할아버지 엘리먼트(timeline-item)를 찾아 삭제
+            const item = button.closest('.timeline-item');
+            if (item) {
+                item.remove();
+            }
+        }
+
+        function sortTimeline() {
+            const timeline = document.getElementById('timeline');
+            const items = Array.from(timeline.getElementsByClassName('timeline-item'));
+            
+            // 시간을 기준으로 오름차순 정렬
+            items.sort((a, b) => {
+                return a.getAttribute('data-time').localeCompare(b.getAttribute('data-time'));
+            });
+            
+            // 정렬된 순서대로 다시 추가
+            items.forEach(item => timeline.appendChild(item));
+        }
+
+        // 최초 로드 시 계산기 작동
+        updateBudget();
+    </script>
+</body>
+</html>
