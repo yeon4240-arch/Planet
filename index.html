@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Japan Gourmet Guide</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen font-sans">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold flex items-center gap-2 text-red-500">
+                <i data-lucide="utensils-crossed"></i> 미식 가이드
+            </h1>
+            <div id="location-status" class="flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-medium transition-all">
+                <i data-lucide="map-pin" class="animate-pulse text-gray-400"></i>
+                <span>위치 권한을 확인 중입니다...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div class="flex bg-gray-200 p-1 rounded-xl w-fit" id="city-tabs">
+                <button onclick="switchCity('nagoya')" id="tab-nagoya" class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all bg-white text-gray-900 shadow-xs cursor-pointer">
+                    나고야 🏯
+                </button>
+                <button onclick="switchCity('osaka')" id="tab-osaka" class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-900 cursor-pointer">
+                    오사카 🐙
+                </button>
+            </div>
+
+            <div class="flex gap-2" id="category-filters">
+                <button onclick="filterCategory('all')" id="filter-all" class="px-4 py-2 rounded-lg text-xs font-bold border border-red-500 bg-red-50 text-red-600 transition-all cursor-pointer">전체</button>
+                <button onclick="filterCategory('food')" id="filter-food" class="px-4 py-2 rounded-lg text-xs font-bold border border-gray-200 bg-white text-gray-600 hover:border-gray-300 transition-all cursor-pointer">식사</button>
+                <button onclick="filterCategory('dessert')" id="filter-dessert" class="px-4 py-2 rounded-lg text-xs font-bold border border-gray-200 bg-white text-gray-600 hover:border-gray-300 transition-all cursor-pointer">디저트/카페</button>
+            </div>
+        </div>
+
+        <div id="restaurant-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+    </main>
+
+    <script>
+        // 맛집 데이터 세트 (검증된 고해상도 고정 정적 이미지 ID 적용)
+        const restaurants = {
+            nagoya: [
+                // === NAGOYA FOOD (20개) ===
+                { name: "Atsuta Horaiken Jingu Main Store", category: "food", rating: 4.6, menu: "히츠마부시 (전통 장어덮밥)", price: "￥4,000 ~ ￥6,000", img: "https://images.unsplash.com/photo-1626200419199-391ae4be7a40?w=600&auto=format&fit=crop&q=80" },
+                { name: "Misokatsu Yabaton Yaba-cho Main Store", category: "food", rating: 4.3, menu: "철판 미소카츠 (된장 돈카츠)", price: "￥1,500 ~ ￥2,500", img: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=600&auto=format&fit=crop&q=80" },
+                { name: "Sekai no Yamachan Sasashima", category: "food", rating: 4.1, menu: "전설의 테바사키 (닭날개 튀김)", price: "￥1,000 ~ ￥2,000", img: "https://images.unsplash.com/photo-1562967914-608f82629af1?w=600&auto=format&fit=crop&q=80" },
+                { name: "Menya Shishimaru", category: "food", rating: 4.5, menu: "닭 백탕 라멘 (토리파이탄)", price: "￥900 ~ ￥1,500", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&auto=format&fit=crop&q=80" },
+                { name: "Hitsumabushi Ino", category: "food", rating: 4.4, menu: "에스카 지하상가 장어덮밥", price: "￥3,500 ~ ￥5,000", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Yamamotoya Souhonke", category: "food", rating: 4.2, menu: "미소 니코미 우동 (된장 우동)", price: "￥1,300 ~ ￥2,200", img: "https://images.unsplash.com/photo-1618841557871-b4664fbf0cb3?w=600&auto=format&fit=crop&q=80" },
+                { name: "Maruya Honten Meieki", category: "food", rating: 4.5, menu: "프리미엄 나고야식 장어 비빔밥", price: "￥3,800 ~ ￥5,500", img: "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kisen Nagoya", category: "food", rating: 4.3, menu: "정통 테바사키 & 이자카야 요리", price: "￥2,000 ~ ￥4,000", img: "https://images.unsplash.com/photo-1532636875304-0c8fe119ff9e?w=600&auto=format&fit=crop&q=80" },
+                { name: "Ramuchii", category: "food", rating: 4.3, menu: "파 듬뿍 미소카츠 정식", price: "￥1,500 ~ ￥2,300", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Misen Yaba-cho", category: "food", rating: 4.2, menu: "타이완 라멘 (매콤한 다진 고기 라멘)", price: "￥800 ~ ￥1,500", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600&auto=format&fit=crop&q=80" },
+                { name: "Sounosuke", category: "food", rating: 4.4, menu: "수제 교자 & 미소 호르몬 구이", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=600&auto=format&fit=crop&q=80" },
+                { name: "Tenmusu Senju", category: "food", rating: 4.3, menu: "원조 텐무스 (새우튀김 주먹밥)", price: "￥800 ~ ￥1,500", img: "https://images.unsplash.com/photo-1607301406259-dfb186e15de8?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kishimen Tei", category: "food", rating: 4.1, menu: "나고야역 플랫폼 키시멘 (납작 우동)", price: "￥600 ~ ￥1,200", img: "https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?w=600&auto=format&fit=crop&q=80" },
+                { name: "Unatou Sakae", category: "food", rating: 4.6, menu: "가성비 극강 장어 계란말이 덮밥", price: "￥2,500 ~ ￥4,000", img: "https://images.unsplash.com/photo-1581264385153-e598c11c7625?w=600&auto=format&fit=crop&q=80" },
+                { name: "Sugakiya Nagoya", category: "food", rating: 4.0, menu: "나고야 소울푸드 돈코츠 해물 라멘", price: "￥500 ~ ￥900", img: "https://images.unsplash.com/photo-1591814443871-850949958065?w=600&auto=format&fit=crop&q=80" },
+                { name: "Tonkatsu Kushikatsu Ishimoto", category: "food", rating: 4.5, menu: "수제 쿠시카츠 & 안심 가츠", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80" },
+                { name: "Torikai Sohonke", category: "food", rating: 4.2, menu: "나고야 코친 오야코동 (토종닭 계란덮밥)", price: "￥1,200 ~ ￥2,000", img: "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?w=600&auto=format&fit=crop&q=80" },
+                { name: "Shishen Tantanmen", category: "food", rating: 4.3, menu: "국물 없는 탄탄멘", price: "￥900 ~ ￥1,400", img: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=600&auto=format&fit=crop&q=80" },
+                { name: "Yakitori Kinzan", category: "food", rating: 4.4, menu: "고급 야키토리 코스 요리", price: "￥3,500 ~ ￥6,000", img: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&auto=format&fit=crop&q=80" },
+                { name: "Gyoza-no-Osho Nagoya", category: "food", rating: 4.0, menu: "대중적인 바삭한 야끼교자 세트", price: "￥700 ~ ￥1,300", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80" },
+
+                // === NAGOYA DESSERT (20개) ===
+                { name: "HARBS Sakae Honten", category: "dessert", rating: 4.4, menu: "시그니처 밀크 크레이프 케이크", price: "￥900 ~ ￥2,000", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13636?w=600&auto=format&fit=crop&q=80" },
+                { name: "Cafe Bonbon", category: "dessert", rating: 4.1, menu: "레트로 쇼트케이크 & 블렌드 커피", price: "￥600 ~ ￥1,500", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" },
+                { name: "Komeda's Coffee Nagoya Station", category: "dessert", rating: 4.2, menu: "시로노와르 데니쉬 & 모닝 토스트", price: "￥500 ~ ￥1,200", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80" },
+                { name: "Tsubame Bread & Milk Meieki", category: "dessert", rating: 4.3, menu: "오구라 토스트 (단팥 버터 토스트)", price: "￥700 ~ ￥1,500", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80" },
+                { name: "Shirakabe Cafe Hanagoyomi", category: "dessert", rating: 4.2, menu: "일본식 브런치 & 와라비모찌", price: "￥800 ~ ￥1,600", img: "https://images.unsplash.com/photo-1582730147233-cbd81137f980?w=600&auto=format&fit=crop&q=80" },
+                { name: "Biyajima Shofuken", category: "dessert", rating: 4.4, menu: "고급 전통 화과자 & 말차", price: "￥1,000 ~ ￥2,500", img: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=600&auto=format&fit=crop&q=80" },
+                { name: "Light Cafe Sakae", category: "dessert", rating: 4.1, menu: "3D 라떼아트 & 수플레 팬케이크", price: "￥1,000 ~ ￥2,000", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kakou", category: "dessert", rating: 4.5, menu: "수제 밤 몽블랑 디저트", price: "￥1,200 ~ ￥2,200", img: "https://images.unsplash.com/photo-1509460913899-515f1df34fea?w=600&auto=format&fit=crop&q=80" },
+                { name: "Nagonoya Cafe", category: "dessert", rating: 4.3, menu: "원조 타마고 산도 (계란 샌드위치)", price: "￥600 ~ ￥1,300", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600&auto=format&fit=crop&q=80" },
+                { name: "Coffee House Kako Yanagibashi", category: "dessert", rating: 4.6, menu: "수제 과일잼을 올린 안코 토스트", price: "￥600 ~ ￥1,200", img: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=600&auto=format&fit=crop&q=80" },
+                { name: "Fruit Parlor Lemon", category: "dessert", rating: 4.2, menu: "생과일 파페 & 메론 소다", price: "￥1,200 ~ ￥2,500", img: "https://images.unsplash.com/photo-1540713434306-585de3f67024?w=600&auto=format&fit=crop&q=80" },
+                { name: "Pierre Marcolini Nagoya", category: "dessert", rating: 4.4, menu: "벨기에 벨벳 초콜릿 파르페", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1569864358642-9d1684040f43?w=600&auto=format&fit=crop&q=80" },
+                { name: "The Cups Fushimi", category: "dessert", rating: 4.3, menu: "스페셜티 플랫화이트 & 젤라또", price: "￥600 ~ ￥1,400", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Glacie Azeria", category: "dessert", rating: 4.5, menu: "유기농 녹차 소프트 아이스크림", price: "￥500 ~ ￥1,000", img: "https://images.unsplash.com/photo-1501443762594-e2ad74bab587?w=600&auto=format&fit=crop&q=80" },
+                { name: "Gram Nagoya Sakae", category: "dessert", rating: 4.1, menu: "프리미엄 3단 두툼한 팬케이크", price: "￥1,200 ~ ￥1,800", img: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=600&auto=format&fit=crop&q=80" },
+                { name: "Downey Classic", category: "dessert", rating: 4.2, menu: "아메리칸 스타일 수제 조각 치즈케이크", price: "￥700 ~ ￥1,500", img: "https://images.unsplash.com/photo-1524351199679-46cddf530c04?w=600&auto=format&fit=crop&q=80" },
+                { name: "Ryuguden", category: "dessert", rating: 4.3, menu: "전통 팥죽 (젠자이) & 차 세트", price: "￥800 ~ ￥1,500", img: "https://images.unsplash.com/photo-1614707267537-b85acf00c4b8?w=600&auto=format&fit=crop&q=80" },
+                { name: "Maison Ywe", category: "dessert", rating: 4.4, menu: "치즈 테린 & 깔끔한 콜드브루", price: "￥800 ~ ￥1,700", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kato Coffee", category: "dessert", rating: 4.5, menu: "가성비 탑 킬리만자로 커피 세트", price: "￥500 ~ ￥1,000", img: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&auto=format&fit=crop&q=80" },
+                { name: "Starbucks Coffee Nagoya Castle", category: "dessert", rating: 4.3, menu: "나고야성 한정 맛차 프라푸치노", price: "￥600 ~ ￥1,200", img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80" }
+            ],
+            osaka: [
+                // === OSAKA FOOD (20개) ===
+                { name: "Sushi Chitose", category: "food", rating: 4.8, menu: "시장 골목 인생 오마카세 스시", price: "￥5,000 ~ ￥10,000", img: "https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=600&auto=format&fit=crop&q=80" },
+                { name: "Gyukatsu Motomura Namba", category: "food", rating: 4.7, menu: "개인 화로 미디엄 규카츠 정식", price: "￥1,930 ~ ￥3,500", img: "https://images.unsplash.com/photo-1615557960901-f2923e417fb1?w=600&auto=format&fit=crop&q=80" },
+                { name: "Mizuno Okonomiyaki", category: "food", rating: 4.4, menu: "도톤보리 미슐랭 야마이모 오코노미야키", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1625938146369-adc83368bda7?w=600&auto=format&fit=crop&q=80" },
+                { name: "Menya Jouroku", category: "food", rating: 4.5, menu: "오사카 블랙 쇼유(간장) 라멘", price: "￥900 ~ ￥1,500", img: "https://images.unsplash.com/photo-1618413341054-d83ee6fc2488?w=600&auto=format&fit=crop&q=80" },
+                { name: "Matsuzakagyu Yakiniku M Hozenji Yokocho", category: "food", rating: 4.6, menu: "최상급 마츠자카규 와규 구이", price: "￥6,000 ~ ￥12,000", img: "https://images.unsplash.com/photo-1544025162-d76694265947?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kushikatsu Daruma Namba", category: "food", rating: 4.2, menu: "원조 바삭한 모둠 쿠시카츠 꼬치튀김", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1532636875304-0c8fe119ff9e?w=600&auto=format&fit=crop&q=80" },
+                { name: "Endo Sushi Kyobashi", category: "food", rating: 4.5, menu: "100년 전통 상온 밥 수제 스시", price: "￥3,000 ~ ￥5,000", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Takoyaki Wanaka Namba", category: "food", rating: 4.4, menu: "겉바속촉 줄 서서 먹는 타코야키", price: "￥600 ~ ￥1,200", img: "https://images.unsplash.com/photo-1607301406259-dfb186e15de8?w=600&auto=format&fit=crop&q=80" },
+                { name: "Jinen Unagidan", category: "food", rating: 4.5, menu: "버터 장어 초밥 (우나기 버터)", price: "￥1,500 ~ ￥3,000", img: "https://images.unsplash.com/photo-1553621042-f6e147245754?w=600&auto=format&fit=crop&q=80" },
+                { name: "Hanamaru Ken Namba", category: "food", rating: 4.3, menu: "행복라멘 (연골 갈비가 올라간 라멘)", price: "￥950 ~ ￥1,500", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=600&auto=format&fit=crop&q=80" },
+                { name: "Ichiran Dotonbori", category: "food", rating: 4.2, menu: "독서실 감성 커스텀 돈코츠 라멘", price: "￥1,000 ~ ￥2,000", img: "https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=600&auto=format&fit=crop&q=80" },
+                { name: "Kani Doraku Dotonbori Honten", category: "food", rating: 4.1, menu: "대게 숯불구이 & 게 정식 요리", price: "￥5,000 ~ ￥10,000", img: "https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&auto=format&fit=crop&q=80" },
+                { name: "Chibo Okonomiyaki", category: "food", rating: 4.2, menu: "프리미엄 해물 치보 오코노미야키", price: "￥1,300 ~ ￥2,500", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Yakiniku Rikimaru Namba", category: "food", rating: 4.4, menu: "타베호다이 와규 무한리필 고기뷔페", price: "￥3,500 ~ ￥5,500", img: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=600&auto=format&fit=crop&q=80" },
+                { name: "Harukoma Sushi", category: "food", rating: 4.5, menu: "두툼하고 저렴한 시장스시", price: "￥1,500 ~ ￥3,500", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Meiji-ken", category: "food", rating: 4.1, menu: "신사이바시 경양식 오므라이스", price: "￥1,000 ~ ￥1,800", img: "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?w=600&auto=format&fit=crop&q=80" },
+                { name: "Tsurutontan Soemoncho", category: "food", rating: 4.2, menu: "세숫대야 그릇 명란 크림 우동", price: "￥1,300 ~ ￥2,500", img: "https://images.unsplash.com/photo-1618841557871-b4664fbf0cb3?w=600&auto=format&fit=crop&q=80" },
+                { name: "551 Horai Namba Honten", category: "food", rating: 4.4, menu: "오사카 명물 수제 부타만 왕만두", price: "￥400 ~ ￥1,000", img: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=600&auto=format&fit=crop&q=80" },
+                { name: "Gyonie Shinsaibashi", category: "food", rating: 4.6, menu: "우니 가리비 해산물 덮밥", price: "￥2,500 ~ ￥4,500", img: "https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=600&auto=format&fit=crop&q=80" },
+                { name: "Tokumasa Umeda", category: "food", rating: 4.3, menu: "바삭한 돈까스 카레 우동", price: "￥900 ~ ￥1,600", img: "https://images.unsplash.com/photo-1591814443871-850949958065?w=600&auto=format&fit=crop&q=80" },
+
+                // === OSAKA DESSERT (20개) ===
+                { name: "Rikuro Ojisan no Mise Namba", category: "dessert", rating: 4.5, menu: "방금 구워낸 폭신한 탱글 치즈케이크", price: "￥950", img: "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=600&auto=format&fit=crop&q=80" },
+                { name: "Moto Coffee Umeda", category: "dessert", rating: 4.3, menu: "강변 테라스 감성 핸드드립 & 수제 푸딩", price: "￥600 ~ ￥1,500", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&auto=format&fit=crop&q=80" },
+                { name: "Mizu No Yakata", category: "dessert", rating: 4.4, menu: "전통 우지말차 빙수 & 단팥죽", price: "￥800 ~ ￥1,600", img: "https://images.unsplash.com/photo-1614707267537-b85acf00c4b8?w=600&auto=format&fit=crop&q=80" },
+                { name: "Gokoku Shinsaibashi", category: "dessert", rating: 4.2, menu: "순생크림 듬뿍 몽실몽실 롤케이크", price: "￥600 ~ ￥1,400", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&auto=format&fit=crop&q=80" },
+                { name: "Arabica Coffee Kyoto Arashiyama Osaka Branch", category: "dessert", rating: 4.5, menu: "응커피 고소한 아이스 카페라떼", price: "￥550 ~ ￥900", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&auto=format&fit=crop&q=80" },
+                { name: "Shiawase no Pancake Shinsaibashi", category: "dessert", rating: 4.4, menu: "행복의 팬케이크 과일 벌꿀 토핑", price: "￥1,300 ~ ￥2,000", img: "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&auto=format&fit=crop&q=80" },
+                { name: "Cafe Garb Kitahama", category: "dessert", rating: 4.2, menu: "초콜릿 브라우니 파르페 & 에이드", price: "￥800 ~ ￥1,800", img: "https://images.unsplash.com/photo-1509460913899-515f1df34fea?w=600&auto=format&fit=crop&q=80" },
+                { name: "Salon de Mon Cher", category: "dessert", rating: 4.5, menu: "도지마롤 원조 생크림 베이커리", price: "￥800 ~ ￥1,700", img: "https://images.unsplash.com/photo-1535141192574-5d4897c13636?w=600&auto=format&fit=crop&q=80" },
+                { name: "Mel Coffee Roasters", category: "dessert", rating: 4.7, menu: "글로벌 탑 스페셜티 핸드드립 커피", price: "￥500 ~ ￥1,200", img: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&auto=format&fit=crop&q=80" },
+                { name: "Pancake Cafe Mog", category: "dessert", rating: 4.3, menu: "마시멜로 구이 핫케이크", price: "￥1,100 ~ ￥1,700", img: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=600&auto=format&fit=crop&q=80" },
+                { name: "Fujiya Confectionery Namba", category: "dessert", rating: 4.1, menu: "페코짱 우유 푸딩 & 파르페 딸기", price: "￥600 ~ ￥1,300", img: "https://images.unsplash.com/photo-1540713434306-585de3f67024?w=600&auto=format&fit=crop&q=80" },
+                { name: "Brooklyn Roasting Company Kitahama", category: "dessert", rating: 4.4, menu: "리버뷰 테라스 카푸치노 & 수제 도넛", price: "￥700 ~ ￥1,500", img: "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&auto=format&fit=crop&q=80" },
+                { name: "Pablo Shinsaibashi", category: "dessert", rating: 4.0, menu: "사르르 녹는 미디엄 타르트 치즈", price: "￥1,000 ~ ￥1,600", img: "https://images.unsplash.com/photo-1524351199679-46cddf530c04?w=600&auto=format&fit=crop&q=80" },
+                { name: "wad omotenashi cafe", category: "dessert", rating: 4.6, menu: "다도 감성 말차 & 맷돌 얼음 빙수", price: "￥1,200 ~ ￥2,200", img: "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?w=600&auto=format&fit=crop&q=80" },
+                { name: "Lilo Coffee Roasters", category: "dessert", rating: 4.6, menu: "스페셜 원두 아이스드 드립", price: "￥600 ~ ￥1,300", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80" },
+                { name: "Hop Chou Creme", category: "dessert", rating: 4.3, menu: "바삭하고 차가운 커스터드 슈크림", price: "￥300 ~ ￥800", img: "https://images.unsplash.com/photo-1501443762594-e2ad74bab587?w=600&auto=format&fit=crop&q=80" },
+                { name: "Guka Cafe", category: "dessert", rating: 4.2, menu: "달콤 쌉싸름한 맛차 아포가토", price: "￥700 ~ ￥1,300", img: "https://images.unsplash.com/photo-1509722747041-616f39b57569?w=600&auto=format&fit=crop&q=80" },
+                { name: "Granknot Coffee", category: "dessert", rating: 4.4, menu: "오렌지 필 라떼 & 초코 쿠키 디저트", price: "￥650 ~ ￥1,200", img: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&auto=format&fit=crop&q=80" },
+                { name: "Taza de Cafe", category: "dessert", rating: 4.3, menu: "수제 티라미수 케이크 & 아메리카노", price: "￥850 ~ ￥1,500", img: "https://images.unsplash.com/photo-1509460913899-515f1df34fea?w=600&auto=format&fit=crop&q=80" },
+                { name: "Dotonbori Starbucks Tsutaya", category: "dessert", rating: 4.1, menu: "통유리 도톤보리 뷰 라떼 & 스콘", price: "￥600 ~ ￥1,300", img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&auto=format&fit=crop&q=80" }
+            ]
+        };
+
+        const COORDINATES = {
+            nagoya: { lat: 35.1709, lng: 136.8815 },
+            osaka: { lat: 34.7024, lng: 135.4959 }
+        };
+
+        let currentCity = 'nagoya';
+        let currentFilter = 'all';
+
+        function getDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function checkLocation() {
+            const statusEl = document.getElementById('location-status');
+            
+            if (!navigator.geolocation) {
+                statusEl.className = "flex items-center gap-2 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-full text-sm font-medium";
+                statusEl.innerHTML = `<i data-lucide="alert-circle"></i><span>위치 서비스를 지원하지 않는 브라우저입니다.</span>`;
+                lucide.createIcons();
+                renderCards();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    const distToNagoya = getDistance(userLat, userLng, COORDINATES.nagoya.lat, COORDINATES.nagoya.lng);
+                    const distToOsaka = getDistance(userLat, userLng, COORDINATES.osaka.lat, COORDINATES.osaka.lng);
+
+                    if (distToNagoya < distToOsaka) {
+                        currentCity = 'nagoya';
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="text-emerald-500"></i><span>현재 위치에서 <b>나고야</b>가 더 가깝습니다!</span>`;
+                        statusEl.className = "flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium border border-emerald-200";
+                    } else {
+                        currentCity = 'osaka';
+                        statusEl.innerHTML = `<i data-lucide="check-circle-2" class="text-emerald-500"></i><span>현재 위치에서 <b>오사카</b>가 더 가깝습니다!</span>`;
+                        statusEl.className = "flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-full text-sm font-medium border border-emerald-200";
+                    }
+                    
+                    updateTabUI();
+                    renderCards();
+                },
+                (error) => {
+                    statusEl.className = "flex items-center gap-2 bg-amber-50 text-amber-700 px-4 py-2 rounded-full text-sm font-medium border border-amber-200";
+                    statusEl.innerHTML = `<i data-lucide="info"></i><span>위치 권한 미수락 (기본: 나고야 설정)</span>`;
+                    lucide.createIcons();
+                    renderCards();
+                }
+            );
+        }
+
+        function updateTabUI() {
+            const cities = ['nagoya', 'osaka'];
+            cities.forEach(city => {
+                const tab = document.getElementById(`tab-${city}`);
+                if (city === currentCity) {
+                    tab.className = "px-6 py-2.5 rounded-lg text-sm font-bold transition-all bg-white text-gray-900 shadow-xs cursor-pointer";
+                } else {
+                    tab.className = "px-6 py-2.5 rounded-lg text-sm font-bold transition-all text-gray-500 hover:text-gray-900 cursor-pointer";
+                }
+            });
+        }
+
+        function switchCity(city) {
+            currentCity = city;
+            updateTabUI();
+            renderCards();
+        }
+
+        function filterCategory(category) {
+            currentFilter = category;
+            const filters = ['all', 'food', 'dessert'];
+            
+            filters.forEach(f => {
+                const filterBtn = document.getElementById(`filter-${f}`);
+                if (f === category) {
+                    filterBtn.className = "px-4 py-2 rounded-lg text-xs font-bold border border-red-500 bg-red-50 text-red-600 transition-all cursor-pointer";
+                } else {
+                    filterBtn.className = "px-4 py-2 rounded-lg text-xs font-bold border border-gray-200 bg-white text-gray-600 hover:border-gray-300 transition-all cursor-pointer";
+                }
+            });
+            renderCards();
+        }
+
+        function openGoogleMaps(queryName) {
+            const encodedQuery = encodeURIComponent(queryName);
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedQuery}`;
+            window.open(googleMapsUrl, '_blank');
+        }
+
+        // 이미지 로딩 실패 시 플레이스홀더로 교체하는 핸들러 함수
+        function handleImgError(imgElement) {
+            imgElement.onerror = null; // 무한 루프 방지
+            imgElement.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80";
+        }
+
+        function renderCards() {
+            const grid = document.getElementById('restaurant-grid');
+            grid.innerHTML = '';
+
+            const list = restaurants[currentCity].filter(item => {
+                return currentFilter === 'all' ? true : item.category === currentFilter;
+            });
+
+            if(list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-400">등록된 매장이 없습니다.</div>`;
+                return;
+            }
+
+            list.forEach(shop => {
+                const card = document.createElement('div');
+                card.onclick = () => openGoogleMaps(`${shop.name} ${currentCity === 'nagoya' ? 'Nagoya' : 'Osaka'}`);
+                card.className = "bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group flex flex-col cursor-pointer relative";
+                
+                card.innerHTML = `
+                    <div class="relative overflow-hidden h-48 bg-gray-100">
+                        <img src="${shop.img}" alt="${shop.name}" onerror="handleImgError(this)" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 px-2.5 py-1 text-xs font-extrabold rounded-md shadow-md ${shop.category === 'food' ? 'bg-orange-500 text-white' : 'bg-pink-500 text-white'} z-10">
+                            ${shop.category === 'food' ? '식사' : '디저트'}
+                        </span>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-1.5 text-white font-bold text-sm">
+                            <i data-lucide="map" class="w-4 h-4"></i> 구글 지도 보기
+                        </div>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-1.5 text-amber-500 text-sm font-bold mb-1">
+                                <i data-lucide="star" class="w-4 h-4 fill-amber-500"></i>
+                                <span>${shop.rating.toFixed(1)}</span>
+                            </div>
+                            <h3 class="text-base font-bold text-gray-900 tracking-tight line-clamp-1 mb-1 group-hover:text-red-500 transition-colors">${shop.name}</h3>
+                            <p class="text-sm text-gray-600 flex items-center gap-1 mb-1.5">
+                                <span class="text-gray-400 font-medium shrink-0">메뉴:</span> <span class="line-clamp-1">${shop.menu}</span>
+                            </p>
+                        </div>
+                        <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                            <span class="flex items-center gap-1"><i data-lucide="wallet" class="w-3.5 h-3.5"></i> 예산 범위</span>
+                            <span class="font-bold text-gray-700 text-sm">${shop.price}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        window.onload = () => {
+            checkLocation();
+        };
+    </script>
+</body>
+</html>
